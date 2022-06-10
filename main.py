@@ -1,4 +1,6 @@
+from curses import window
 from json import load
+from turtle import window_height
 from matplotlib.backend_bases import LocationEvent
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -27,16 +29,35 @@ def main():
     loadPage(driver)
     post_body = getPostContent(driver)
     nav_top = getNavTop(driver)
-    print(nav_top.size)
     # we want to scroll down to the top of the post minus the height of the floating nav
     first_scroll_height = post_body.location['y'] - nav_top.size['height']
+    
     driver.execute_script("window.scrollTo(0, "+str(first_scroll_height)+")")
-    date_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-    name = './'+date_time+'.png'
-    print(name)
-    post_body.screenshot(name)
-    #post_body.screenshot(name)
+    num_of_screenshots = 0
+    while screenShotsHaveCoveredPost(driver, post_body, num_of_screenshots, first_scroll_height) is False:
+        takeScreenshot(post_body, num_of_screenshots)
+        num_of_screenshots = num_of_screenshots + 1
+        driver.execute_script("window.scrollBy(0, "+str(driver.get_window_size()["height"] - first_scroll_height)+")")
+
     driver.close()
+
+def screenShotsHaveCoveredPost(driver, element, iteration, first_scroll_height):
+    window_height = driver.get_window_size()['height']
+    el_height = element.size['height']
+
+    if el_height > first_scroll_height + (window_height * iteration):
+        print('False')
+        return False
+    else: 
+        print('true')
+        return True
+
+
+
+def takeScreenshot(element, num):
+    date_time = str(num)+datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+    name = './'+date_time+'.png'
+    element.screenshot(name)
 
 def getPostContent(driver):
     post_body = WebDriverWait(driver, 20).until(
