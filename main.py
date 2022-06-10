@@ -1,4 +1,5 @@
-from pydoc import classname
+from json import load
+from matplotlib.backend_bases import LocationEvent
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from datetime import datetime
@@ -6,39 +7,47 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-chrome_driver = '/Users/edirose/Desktop/drivers/chromedriver'
-options = Options()
+def getDriver(): 
+    chrome_driver = '/Users/edirose/Desktop/drivers/chromedriver'
+    options = Options()
+    options.headless = False
+    return webdriver.Chrome(chrome_driver, options=options)
 
-options.add_argument('--start-maximized')
-options.add_argument('--start-fullscreen')
+#this will need to be updated once we have a method and want to automate every page
+def loadPage(driver):
+    try: 
+        site = driver.get('https://www.strategyblocks.com/strategyblocks-full-manual/getting-started/basic-terminology/')
+    except:
+        print('couldnt load site')
+    finally:
+        return site        
 
-right_now = datetime.now()
-
-options.headless = False
-driver = webdriver.Chrome(chrome_driver, options=options)
-
-try: 
-    site = driver.get('https://www.strategyblocks.com/strategyblocks-full-manual/getting-started/basic-terminology/')
-except:
-    print('could not load driver')
-finally:
-    print(site)
-    element = WebDriverWait(driver, 20).until(
-        EC.visibility_of_all_elements_located((By.CLASS_NAME, "post-content")))
-    #image = element.screenshot('./',right_now,'.png')
-    print(element)
+def main():
+    driver = getDriver()
+    loadPage(driver)
+    post_body = getPostContent(driver)
+    nav_top = getNavTop(driver)
+    print(nav_top.size)
+    # we want to scroll down to the top of the post minus the height of the floating nav
+    first_scroll_height = post_body.location['y'] - nav_top.size['height']
+    driver.execute_script("window.scrollTo(0, "+str(first_scroll_height)+")")
+    date_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+    name = './'+date_time+'.png'
+    print(name)
+    post_body.screenshot(name)
+    #post_body.screenshot(name)
     driver.close()
 
-#height = driver.execute_script("return document.body.scrollHeight")
-#options.add_argument("window-size=height, 2000")
+def getPostContent(driver):
+    post_body = WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "post-content"))
+    )
+    return post_body
 
+def getNavTop(driver):
+    nav_top = WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "fusion-secondary-main-menu"))
+    )
+    return nav_top
 
-
-##location = element.location
-##size = element.size
-##ss = driver.save_screenshot('test.png')
-
-##left = location['x']
-##top = location['y']
-##right = location['x'] + size['width']
-##bottom = location['y'] + size['height']
+main()
