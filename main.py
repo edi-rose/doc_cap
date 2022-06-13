@@ -1,3 +1,5 @@
+from random import randint
+from numpy import empty
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from datetime import datetime
@@ -14,20 +16,12 @@ def getDriver():
     options = Options()
     options.headless = False
     return webdriver.Chrome(chrome_driver, options=options)
-
-#this will need to be updated once we have a method and want to automate every page
-def loadPage(driver):
-    try: 
-        site = driver.get('https://sbstagingphpup.wpengine.com/block-faces/')
-    except:
-        print('couldnt load site')
-    finally:
-        return site        
-
+    
 # kicks off all processes for a single page.
-def main():
+def main(link):
     driver = getDriver()
-    loadPage(driver)
+    print(link)
+    driver.get(link)
     post_body = getPostContent(driver)
 
     #removes the sidebar, header and footer
@@ -103,7 +97,8 @@ def mergeImages(names):
             prev_img = Image.open(names[count-1])
             dst.paste(x_img, (0, prev_img.height))
         count = count + 1
-    dst.save('./merged.png')
+    name = createName(randint(1,100))
+    dst.save(name)
     return
 
 # loops through page images, crops and sharpens each
@@ -116,6 +111,34 @@ def processImages(names):
             sharpenImg(x)
     if len(names)>1:
         mergeImages(names)
+    for x in names: 
+        os.remove(x)
     return
 
-#main()
+def getLinks():
+    driver = getDriver()
+    driver.get("https://www.strategyblocks.com/strategyblocks-full-manual/")
+
+    driver.execute_script("return document.getElementsByClassName('fusion-column-wrapper fusion-flex-column-wrapper-legacy')[0].remove();")
+    driver.execute_script("return document.getElementsByClassName('fusion-footer')[0].remove();")
+    driver.execute_script("return document.getElementsByClassName('fusion-header-wrapper')[0].remove();")
+    link_list = []
+    #bit of a hack to exclude other links not suitable for documentation capture
+    banned_links = [None, '', 'https://www.strategyblocks.com/strategyblocks-full-manual/#', 'https://www.strategyblocks.com/strategyblocks-full-manual/#content', 'https://www.strategyblocks.com/blog/author/carolinepurre/']
+
+    for x in driver.find_elements_by_tag_name('a'):
+        link = x.get_attribute('href')
+        if link not in banned_links and link not in link_list:
+            link_list.append(x.get_attribute('href'))
+    driver.close()
+    return link_list
+
+def kickoff():
+    links = getLinks()
+    print(links)
+
+    for link in links: 
+        main(link)
+    return
+
+kickoff()
