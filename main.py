@@ -24,6 +24,7 @@ def loadPage(driver):
     finally:
         return site        
 
+# kicks off all processes for a single page.
 def main():
     driver = getDriver()
     loadPage(driver)
@@ -33,6 +34,8 @@ def main():
     driver.execute_script("return document.getElementsByClassName('fusion-column-wrapper fusion-flex-column-wrapper-legacy')[0].remove();")
     driver.execute_script("return document.getElementsByClassName('fusion-footer')[0].remove();")
     driver.execute_script("return document.getElementsByClassName('fusion-header-wrapper')[0].remove();")
+
+    #gets the view height, this is the height we care about when scrolling
     view_height = driver.execute_script("return window.visualViewport['height']")
     num_of_screenshots = 0
     names = []
@@ -46,6 +49,7 @@ def main():
     processImages(names)
     driver.close()
 
+# determines if we need to do more screenshots 
 def screenshotsHaveCoveredPost(driver, element, iteration):
     window_height = driver.get_window_size()['height']
     el_height = element.size['height']
@@ -55,6 +59,7 @@ def screenshotsHaveCoveredPost(driver, element, iteration):
     else: 
         return True
 
+#creates dynamic filenames for our images
 def createName(num):
     date_time = str(num)+datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
     name = './'+date_time+'.png'
@@ -63,6 +68,7 @@ def createName(num):
 def takeScreenshot(element, name):
     element.screenshot(name)
 
+# waits until the body is loaded (side bar included)
 def getPostContent(driver):
     post_body = WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.CLASS_NAME, "post-content"))
@@ -78,10 +84,12 @@ def cropScreenshot(name):
     im_crop.save(name, "PNG")
     return True
 
+# uses image filter sharpen, TODO: test more filters
 def sharpenImg(name):
     im = Image.open(name)
     im.filter(ImageFilter.SHARPEN).save(name)
 
+# merges the images of a page vertically - loop count should be refactored
 def mergeImages(names):
     im1 = Image.open(names[0])
     dst = Image.new('RGB', (im1.width, im1.height * len(names)))
@@ -91,13 +99,14 @@ def mergeImages(names):
         x_img = Image.open(x)
         if count == 0:
             dst.paste(x_img, (0, 0))
-            count = count + 1
         else: 
             prev_img = Image.open(names[count-1])
             dst.paste(x_img, (0, prev_img.height))
+        count = count + 1
     dst.save('./merged.png')
     return
 
+# loops through page images, crops and sharpens each
 def processImages(names):
     for x in names: 
         while not os.path.exists(x):
@@ -109,4 +118,4 @@ def processImages(names):
         mergeImages(names)
     return
 
-main()
+#main()
