@@ -24,7 +24,7 @@ def getDriver():
 #this will need to be updated once we have a method and want to automate every page
 def loadPage(driver):
     try: 
-        site = driver.get('https://www.strategyblocks.com/strategyblocks-full-manual/basic-navigation//')
+        site = driver.get('https://sbstagingphpup.wpengine.com/strategyblocks-full-manual/getting-started/basic-terminology/')
     except:
         print('couldnt load site')
     finally:
@@ -52,8 +52,6 @@ def main():
 
     processImages(names)
     driver.close()
-
-    
 
 def screenshotsHaveCoveredPost(driver, element, iteration):
     window_height = driver.get_window_size()['height']
@@ -90,7 +88,23 @@ def cropScreenshot(name):
 def sharpenImg(name):
     im = Image.open(name)
     im.filter(ImageFilter.SHARPEN).save(name)
-    
+
+def mergeImages(names):
+    im1 = Image.open(names[0])
+    dst = Image.new('RGB', (im1.width, im1.height * len(names)))
+    count = 0
+    for x in names: 
+        print(x)
+        x_img = Image.open(x)
+        if count == 0:
+            dst.paste(x_img, (0, 0))
+            count = count + 1
+        else: 
+            prev_img = Image.open(names[count-1])
+            dst.paste(x_img, (0, prev_img.height))
+    #dst.paste(im2, (0, im1.height))
+    dst.save('./merged.png')
+    return
 
 def processImages(names):
     for x in names: 
@@ -99,6 +113,8 @@ def processImages(names):
         if os.path.isfile(x):
             cropScreenshot(x)
             sharpenImg(x)
+    if len(names)>1:
+        mergeImages(names)
     return
 
 main()
