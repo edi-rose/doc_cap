@@ -1,7 +1,3 @@
-from curses import window
-from json import load
-from turtle import window_height
-from matplotlib.backend_bases import LocationEvent
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from datetime import datetime
@@ -10,8 +6,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from PIL import Image
 from PIL import ImageFilter
-
-from io import BytesIO
 import time
 import os.path
 
@@ -24,7 +18,7 @@ def getDriver():
 #this will need to be updated once we have a method and want to automate every page
 def loadPage(driver):
     try: 
-        site = driver.get('https://sbstagingphpup.wpengine.com/strategyblocks-full-manual/getting-started/basic-terminology/')
+        site = driver.get('https://sbstagingphpup.wpengine.com/block-faces/')
     except:
         print('couldnt load site')
     finally:
@@ -39,7 +33,7 @@ def main():
     driver.execute_script("return document.getElementsByClassName('fusion-column-wrapper fusion-flex-column-wrapper-legacy')[0].remove();")
     driver.execute_script("return document.getElementsByClassName('fusion-footer')[0].remove();")
     driver.execute_script("return document.getElementsByClassName('fusion-header-wrapper')[0].remove();")
-    
+    view_height = driver.execute_script("return window.visualViewport['height']")
     num_of_screenshots = 0
     names = []
     while screenshotsHaveCoveredPost(driver, post_body, num_of_screenshots) is False:
@@ -47,8 +41,7 @@ def main():
         takeScreenshot(post_body, name_latest)
         names.append(name_latest)
         num_of_screenshots = num_of_screenshots + 1
-        print(driver.get_window_size()["height"]-20)
-        driver.execute_script("window.scrollBy(0, "+str(driver.get_window_size()["height"])+")")
+        driver.execute_script("window.scrollBy(0, "+str(view_height)+")")
 
     processImages(names)
     driver.close()
@@ -102,7 +95,6 @@ def mergeImages(names):
         else: 
             prev_img = Image.open(names[count-1])
             dst.paste(x_img, (0, prev_img.height))
-    #dst.paste(im2, (0, im1.height))
     dst.save('./merged.png')
     return
 
