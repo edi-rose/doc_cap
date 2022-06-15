@@ -1,21 +1,20 @@
 from PIL import Image
 from PIL import ImageFilter
 import os
+import glob
 
-
+from numpy import save 
 
 def getNames():
-    file_names = []
-    for file in os.listdir('./images/'):
-        if file.endswith('.png'):
-            file_names.append(file)
-    return file_names
+    files = list(filter(os.path.isfile, glob.glob('./images/'+"*")))
+    files.sort(key=lambda x: os.path.getmtime(x))
+    return files
 
 def getImages():
     file_names= getNames()
     images = []
     for name in file_names: 
-        img = Image.open('./images/'+name)
+        img = Image.open(name)
         im_pdf = img.convert('RGB')
         images.append(im_pdf)
     return images
@@ -29,3 +28,4 @@ def saveList():
             im_list.append(x)
     im_1.save('./images/current_docs.pdf', save_all= True, append_images=im_list)
 
+saveList()
