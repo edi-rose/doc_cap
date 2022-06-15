@@ -10,6 +10,10 @@ from PIL import ImageFilter
 import time
 import os.path
 
+
+# This version was made redundant because of the firefox driver ability to screenshot a whole element
+# Keeping it for now as a reminder of the collosal effort I made to stitch several screenshots together
+
 def getDriver(): 
     chrome_driver = '/Users/edirose/Desktop/drivers/chromedriver'
     options = Options()

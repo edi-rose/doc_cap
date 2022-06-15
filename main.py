@@ -35,7 +35,7 @@ def main(link):
     processImage(name)
     driver.close()
 
-#creates dynamic filenames for our images C
+#creates dynamic filenames for our images Currently Redundant
 def createName():
     date_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
     name = './images/'+date_time+'.png'
@@ -105,8 +105,8 @@ def kickoff():
     for link in links: 
         main(link)
     
-    to_pdf.saveList()
-    clear.clear_pngs()
+    #to_pdf.saveList()
+    #clear.clear_pngs()
     print('doc capture complete')
     return
 
