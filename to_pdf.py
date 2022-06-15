@@ -27,6 +27,5 @@ def saveList():
     for i,x in enumerate(images): 
         if i != 0:
             im_list.append(x)
-    im_1.save('./current_docs.pdf', save_all= True, append_images=im_list)
-    
-saveList()
+    im_1.save('./images/current_docs.pdf', save_all= True, append_images=im_list)
+

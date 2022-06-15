@@ -8,16 +8,20 @@ from PIL import Image
 from PIL import ImageFilter
 import time
 import os.path
+import to_pdf 
+import clear
 
 def getDriver(): 
     gecko_driver = '/Users/edirose/Desktop/drivers/geckodriver'
     options = Options()
-    #options.headless = False
+    options.headless = True
     return webdriver.Firefox(executable_path=gecko_driver ,options=options)
     
 # kicks off all processes for a single page.
 def main(link):
     driver = getDriver()
+    driver.set_window_position(0, 0)
+    driver.set_window_size(1800, 800)
     driver.get(link)
     post_body = getPostContent(driver)
 
@@ -26,7 +30,7 @@ def main(link):
     driver.execute_script("return document.getElementsByClassName('fusion-footer')[0].remove();")
     driver.execute_script("return document.getElementsByClassName('fusion-header-wrapper')[0].remove();")
     driver.execute_script("return document.getElementsByClassName('to-top-container')[0].remove();")
-    name = './images/'+ driver.find_element_by_tag_name('h1').text.replace(" ", "")+'.png'
+    name = './images/'+ driver.find_element(by=By.TAG_NAME, value='h1').text.replace(" ", "").replace("/", '_')+'.png'
     takeScreenshot(post_body, name)
     processImage(name)
     driver.close()
@@ -73,7 +77,11 @@ def processImage(name):
 
 def getLinks():
     driver = getDriver()
+    # live site 
     driver.get("https://www.strategyblocks.com/strategyblocks-full-manual/")
+
+    # staging site
+    #driver.get('https://sbstagingphpup.wpengine.com/strategyblocks-full-manual/')
 
     driver.execute_script("return document.getElementsByClassName('fusion-column-wrapper fusion-flex-column-wrapper-legacy')[0].remove();")
     driver.execute_script("return document.getElementsByClassName('fusion-footer')[0].remove();")
@@ -81,9 +89,10 @@ def getLinks():
     link_list = []
 
     #bit of a hack to exclude other links not suitable for documentation capture
+    # considering adding News, Calendar Integration
     banned_links = [None, '', 'https://www.strategyblocks.com/strategyblocks-full-manual/#', 'https://www.strategyblocks.com/strategyblocks-full-manual/#content', 'https://www.strategyblocks.com/blog/author/carolinepurre/']
 
-    for x in driver.find_elements_by_tag_name('a'):
+    for x in driver.find_elements(by=By.TAG_NAME, value='a'):
         link = x.get_attribute('href')
         if link not in banned_links and link not in link_list:
             link_list.append(x.get_attribute('href'))
@@ -92,16 +101,20 @@ def getLinks():
 
 def kickoff():
     links = getLinks()
-    print(links)
 
     for link in links: 
         main(link)
+    
+    to_pdf.saveList()
+    clear.clear_pngs()
+    print('doc capture complete')
     return
 
 def getHeader():
     driver = getDriver()
-    el = driver.find_element_by_tag_name('h1')
+    el = driver.find_element(by=By.TAG_NAME, value='h1')
     return el.text
 
 kickoff()
 
+#main('https://sbstagingphpup.wpengine.com/strategyblocks-full-manual/stadard-options-and-where-to-find-the-options-menu/')

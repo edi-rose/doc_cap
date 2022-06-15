@@ -163,6 +163,6 @@ def getScreenshotNonOverlap(el_height, view_height):
 #main('https://sbstagingphpup.wpengine.com/strategyblocks-full-manual/9-admin-functions/risk-management/')
 #main('https://www.strategyblocks.com/strategyblocks-full-manual/monitor-metrics-risks-documents/metrics-table/')
 
-#main('https://www.strategyblocks.com/strategyblocks-full-manual/getting-started/basic-terminology/')
+main('https://sbstagingphpup.wpengine.com/strategyblocks-full-manual/stadard-options-and-where-to-find-the-options-menu/')
 
-kickoff()
+#kickoff()
