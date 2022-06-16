@@ -8,7 +8,7 @@ from PIL import Image
 from PIL import ImageFilter
 import time
 import os.path
-import to_pdf 
+import img_process 
 import clear
 
 def getDriver(): 
@@ -32,7 +32,6 @@ def main(link):
     driver.execute_script("return document.getElementsByClassName('to-top-container')[0].remove();")
     name = './images/'+ driver.find_element(by=By.TAG_NAME, value='h1').text.replace(" ", "").replace("/", '_')+'.png'
     takeScreenshot(post_body, name)
-    processImage(name)
     driver.close()
 
 #creates dynamic filenames for our images Currently Redundant
@@ -50,30 +49,6 @@ def getPostContent(driver):
         EC.presence_of_element_located((By.CLASS_NAME, "post-content"))
     )
     return post_body
-
-#crops the sides of the screenshot, values for left right can be adjusted. 
-def cropScreenshot(name):
-    im = Image.open(name)
-    left = im.width / 3.7
-    right = im.width * 0.95
-    box = (left, 0, right, im.height)
-    im_crop = im.crop(box)
-    im_crop.save(name, "PNG")
-    return True
-
-# uses image filter sharpen, TODO: test more filters
-def sharpenImg(name):
-    im = Image.open(name)
-    im.filter(ImageFilter.SHARPEN).save(name)
-
-# loops through page images, crops and sharpens each
-def processImage(name):
-    while not os.path.exists(name):
-        time.sleep(1)
-    if os.path.isfile(name):
-        cropScreenshot(name)
-        sharpenImg(name)
-    return
 
 def getLinks():
     driver = getDriver()
@@ -105,8 +80,8 @@ def kickoff():
     for link in links: 
         main(link)
     
-    #to_pdf.saveList()
-    #clear.clear_pngs()
+    img_process.processImages()
+    clear.clear_pngs()
     print('doc capture complete')
     return
 
@@ -116,5 +91,4 @@ def getHeader():
     return el.text
 
 kickoff()
-
 #main('https://sbstagingphpup.wpengine.com/strategyblocks-full-manual/stadard-options-and-where-to-find-the-options-menu/')
