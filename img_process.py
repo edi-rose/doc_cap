@@ -8,41 +8,32 @@ import clear
 from PyPDF2 import PdfMerger
 
 
-def getNames():
-    files = list(filter(os.path.isfile, glob.glob('./images/'+"*")))
+def getNames(type: str):
+    files = list(filter(os.path.isfile, glob.glob('./images/**/*'+type, recursive=True)))
     files.sort(key=lambda x: os.path.getmtime(x))
     return files
 
-def to_pdf(name: str):
+def toPDF(name: str):
     img = Image.open(name)
     name_no_ext = name.replace(".png", "")
     im_pdf = pytesseract.image_to_pdf_or_hocr(img, extension='pdf')
     with open(name_no_ext+'.pdf', 'w+b') as f:
         f.write(im_pdf) 
-        return f.read(im_pdf)
 
-# def combine_pdfs():
-#     names= getNames()
-#     im_1 = Image.open(names[0])
-#     im_list = []
-#     for i,x in enumerate(names): 
-#         if i != 0:
-#             im_list.append(to_pdf(x))
-#     im_1.save('./images/current_docs.pdf', save_all= True, append_images=im_list)
-
-def combine_pdfs():
-    names = getNames()
+def combinePDFs():
+    names = getNames('pdf')
     merger = PdfMerger()
-    for pdf in names: 
-
-        merger.append(pdf)
+    merger.append('./Header_Image.pdf', 'Introduction')
+    for pdf_path in names: 
+        bookmark = os.path.basename(os.path.normpath(pdf_path))[:-4].replace('_', ' ')
+        merger.append(pdf_path, bookmark)
     merger.write('docs_latest.pdf')
     merger.close()
 
 #crops the sides of the screenshot, values for left right can be adjusted. 
 def cropScreenshot(name):
     im = Image.open(name)
-    left = im.width / 3.7
+    left = im.width / 3.8
     right = im.width * 0.95
     box = (left, 0, right, im.height)
     im_crop = im.crop(box)
@@ -53,15 +44,14 @@ def cropScreenshot(name):
 def sharpenImg(name):
     im = Image.open(name)
     im.filter(ImageFilter.SHARPEN).save(name)
+    return
 
 # loops through page images, crops and sharpens each
 def processImages():
-    im_file_paths = getNames()
+    im_file_paths = getNames('png')
     for x in im_file_paths: 
         cropScreenshot(x)
-        to_pdf(x)
         sharpenImg(x)
-    clear.clear_pngs()
-    combine_pdfs()
-    clear.clear_pdfs()
+        toPDF(x)
+    combinePDFs()
     return
